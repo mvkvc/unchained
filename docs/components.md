@@ -1,0 +1,29 @@
+# Components
+
+- LM
+    - Common interface for calling different models with their own configurations
+    - Components
+        - Model
+        - Config
+- Function
+    - General runtime for async work that spawns and supervises other instances of itself
+    - Components
+        - Application level DynamicSupervisor is included
+        - When instantiated or running, if no parent then attach self to Application level DynamicSupervisor
+        - If there is a parent then the parent should spawn the child and attach it to its own process tree (Looks like on child startup check if linked)
+        - Write code optimistically if something crashes then fail the running and retry with counter.
+            - On error or timeout, retry with counter until max retries reached then send fail message to root supervisor.
+            - This is return to the root process under dynamic supervisor that there was an error and shut itself down causing all linked processes to shutdown.
+        - Concept of checking the work of a function
+            - Rerun the function with the same prompt but without running anything, basically a generation function that says given this is that correct
+            - Optional param trade latency for correctness, but need to do it in a way where it reuses the same prompts, with option to overried
+ - Validators
+    - Given a prompt to do something usually extract some information or decide URL to call function with, validate the response
+    - Components
+        - Prompt
+            - Prompt describing high level task and few shot examples
+            - Include schema here
+        - Parser
+            - Take structured output and try to parse it into a schema with conversion where possible
+            - Based on schemaless changeset as input to parse response output
+            - Return changeset result with custom error messages
